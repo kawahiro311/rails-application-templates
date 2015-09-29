@@ -1,3 +1,5 @@
+require 'bundler'
+
 ## .gitignore
 run 'wget -O .gitignore https://raw.githubusercontent.com/github/gitignore/master/Rails.gitignore'
 
@@ -15,6 +17,8 @@ gem_group :development, :test do
   gem 'rspec-rails'
   gem 'capybara'
   gem 'turnip'
+  gem 'factory_girl_rails'
+  gem 'database_rewinder'
 
   gem 'quiet_assets' # ログ出力抑制
   gem 'did_you_mean' # typo cover
@@ -59,12 +63,54 @@ application do
   }
 end
 
-# setup rspec
-generate 'rspec:install'
-
-create_file '.rspec', <<EOF, force: true
---color -f d -r turnip/rspec
-EOF
-
-# remove files
+# Remove files
 remove_file 'README.rdoc'
+
+# Remove comment and empty lines
+empty_line_pattern = /^\s*\n/
+comment_line_pattern = /^\s*#.*\n/
+
+gsub_file 'Gemfile', comment_line_pattern, ''
+
+gsub_file 'config/application.rb', comment_line_pattern, ''
+
+gsub_file 'config/routes.rb', comment_line_pattern, ''
+gsub_file 'config/routes.rb', empty_line_pattern, ''
+
+gsub_file 'config/database.yml', comment_line_pattern, ''
+
+# setup rspec
+after_bundle do
+  generate 'rspec:install'
+
+  insert_into_file 'spec/spec_helper.rb', <<RUBY, before: 'RSpec.configure do |config|'
+require 'factory_girl_rails'
+RUBY
+
+  insert_into_file 'spec/spec_helper.rb', <<RUBY, after: 'RSpec.configure do |config|'
+  config.before :suite do
+    DatabaseRewinder.clean_all
+  end
+  config.after :each do
+    DatabaseRewinder.clean
+  end
+  config.before :all do
+    FactoryGirl.reload
+    FactoryGirl.factories.clear
+    FactoryGirl.sequences.clear
+    FactoryGirl.find_definitions
+  end
+  config.include FactoryGirl::Syntax::Methods
+RUBY
+
+  create_file 'spec/turnip_helper.rb', <<RUBY
+require 'rails_helper'
+require 'turnip/capybara'
+Dir.glob("spec/steps/**/*steps.rb") { |f| load f, true }
+RUBY
+end
+
+# git
+after_bundle do
+  git :init
+end
