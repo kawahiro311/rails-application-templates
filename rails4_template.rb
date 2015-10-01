@@ -4,8 +4,6 @@ require 'bundler'
 run 'wget -O .gitignore https://raw.githubusercontent.com/github/gitignore/master/Rails.gitignore'
 
 # Gemfile
-gsub_file 'Gemfile', /gem 'turbolinks'\n/, ''
-
 gem 'paranoia', '~> 2.0' # 論理削除
 gem 'kaminari' # ページネーション
 gem 'exception_notification' # エラー通知
