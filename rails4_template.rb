@@ -81,30 +81,59 @@ gsub_file 'config/database.yml', comment_line_pattern, ''
 after_bundle do
   generate 'rspec:install'
 
-  insert_into_file 'spec/spec_helper.rb', <<RUBY, before: 'RSpec.configure do |config|'
-require 'factory_girl_rails'
-RUBY
-
-  insert_into_file 'spec/spec_helper.rb', <<RUBY, after: 'RSpec.configure do |config|'
-  config.before :suite do
-    DatabaseRewinder.clean_all
-  end
-  config.after :each do
-    DatabaseRewinder.clean
-  end
-  config.before :all do
-    FactoryGirl.reload
-    FactoryGirl.factories.clear
-    FactoryGirl.sequences.clear
-    FactoryGirl.find_definitions
-  end
-  config.include FactoryGirl::Syntax::Methods
-RUBY
-
   create_file 'spec/turnip_helper.rb', <<RUBY
-require 'rails_helper'
+ENV["RAILS_ENV"] ||= 'test'
+
+require File.expand_path("../../config/environment", __FILE__)
+require 'rspec/rails'
+require 'capybara/rails'
+
+require 'capybara'
+require 'capybara/poltergeist'
+
+require 'turnip'
 require 'turnip/capybara'
-Dir.glob("spec/steps/**/*steps.rb") { |f| load f, true }
+require 'turnip/rspec'
+
+require 'factory_girl_rails'
+
+require 'database_cleaner'
+
+# using driver (need phantomjs)
+Capybara.current_driver = :poltergeist
+Capybara.default_driver = :poltergeist
+Capybara.javascript_driver = :poltergeist
+Capybara.run_server = true
+
+# web driverの設定
+Capybara.register_driver :poltergeist do |app|
+  Capybara::Poltergeist::Driver.new(app, {:js_errors => false, :default_wait_time => 30, :timeout => 100})
+end
+
+Dir.glob("spec/**/*steps.rb") { |f| load f, true }
+
+
+RSpec.configure do |config|
+  config.include FactoryGirl::Syntax::Methods
+  config.use_transactional_fixtures = false
+
+  config.before(:suite) do
+    DatabaseCleaner.strategy = :truncation
+    DatabaseCleaner.clean_with :truncation
+  end
+
+  config.before(:each) do
+    DatabaseCleaner.start
+  end
+
+  config.after(:each) do
+    DatabaseCleaner.clean
+  end
+
+  config.after(:suite) do
+    DatabaseCleaner.clean
+  end
+end
 RUBY
 end
 
