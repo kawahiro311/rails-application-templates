@@ -4,6 +4,13 @@ My Rails application templates
 
 ## Usage
 
+```
+mkdir YOUR_RAILS_PROJECT
+cd YOUR_RAILS_PROJECT
+bundle init
+bundle install --path vendor/bundle --jobs=4
+```
+
 for postgres
 
 ```
