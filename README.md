@@ -5,9 +5,8 @@ My Rails application templates
 ## Usage
 
 ```
-mkdir YOUR_RAILS_PROJECT
-cd YOUR_RAILS_PROJECT
-bundle init
+mkdir YOUR_RAILS_PROJECT && cd YOUR_RAILS_PROJECT
+bundle init # And Remove rails gem comment
 bundle install --path vendor/bundle --jobs=4
 ```
 
