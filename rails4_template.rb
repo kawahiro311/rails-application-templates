@@ -47,8 +47,8 @@ application do
 
     config.generators do |g|
       g.orm :active_record
-      g.test_framework :rspec, :fixture => true
-      g.fixture_replacement :factory_girl, :dir => "spec/factories"
+      g.test_framework :rspec, fixture: true
+      g.fixture_replacement :factory_girl, dir: 'spec/factories'
       g.view_specs false
       g.controller_specs false
       g.routing_specs false
@@ -106,7 +106,7 @@ Capybara.run_server = true
 
 # web driverの設定
 Capybara.register_driver :poltergeist do |app|
-  Capybara::Poltergeist::Driver.new(app, {:js_errors => false, :default_wait_time => 30, :timeout => 100})
+  Capybara::Poltergeist::Driver.new(app, {js_errors: false, default_wait_time: 30, timeout: 100})
 end
 
 Dir.glob("spec/**/*steps.rb") { |f| load f, true }
