@@ -19,7 +19,6 @@ gem_group :development, :test do
   gem 'database_rewinder'
 
   gem 'quiet_assets' # ログ出力抑制
-  gem 'did_you_mean' # typo cover
 end
 
 gem_group :development do
